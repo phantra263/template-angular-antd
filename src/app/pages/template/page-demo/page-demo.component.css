@@ -1,0 +1,27 @@
+@import url('../../../../TTSstyles.css');
+.table-infor {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.table-infor .field-infor {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  width: calc(50% - 12px);
+  margin-right: 12px;
+}
+.table-infor .field-infor.w-full {
+  width: 100%;
+}
+.table-infor .field-infor .label-detail {
+  width: 130px;
+  text-align: right;
+  white-space: normal;
+  height: inherit;
+  margin: 0 8px 0 0;
+}
+.group-control {
+  display: flex;
+  align-items: center;
+}

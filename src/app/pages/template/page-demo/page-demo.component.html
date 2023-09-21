@@ -1,0 +1,249 @@
+<nz-card style="min-height: calc(100vh - 112px);">
+  <div nz-row [nzGutter]="24" class="s2-action-bar">
+    <div nz-col nzFlex="120px">
+      <nz-form-item>
+        <nz-form-label>Tổng số</nz-form-label>
+        <nz-form-control>
+          <nz-badge nzStandalone [nzCount]="totalItems" [nzStyle]="{ backgroundColor: '#108ee9' }" [nzShowZero]="true"
+            [nzOverflowCount]="9999"></nz-badge>
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+
+    <div nz-col nzFlex="auto"></div>
+
+    <div class="group-control">
+      <nz-form-item>
+        <nz-form-control>
+          <button nz-button nzType="default" (click)="showForm = true">
+            <i nz-icon nzType="plus-circle" nzTheme="outline"></i>
+            Thêm mới
+          </button>
+        </nz-form-control>
+      </nz-form-item>
+  
+      <nz-form-item style="margin:0 12px;">
+        <nz-form-control>
+          <button nz-popconfirm nzPopconfirmTitle="Bạn có chắc muốn xóa?"
+          (nzOnConfirm)="fnDelete()" nzOnCancel
+          nz-popover nz-button nzDanger nzType="primary" [disabled]="listData.length <= 0">
+          <i nz-icon nzType="delete"></i>
+          Xóa
+        </button>
+        </nz-form-control>
+      </nz-form-item>
+  
+      <div>
+        <button nz-button nzType="primary" [hidden]="!chinhSuaAvtive" (click)="fnSaveUpdate()">
+          <i nz-icon nzType="save" nzTheme="outline"></i>
+          Lưu
+        </button>
+    
+        <button nz-button nzType="default" [hidden]="!chinhSuaAvtive" (click)="fnCancelUpdate()" style="margin: 0 8px;">
+          <i nz-icon nzType="close-circle" nzTheme="outline"></i>
+          Hủy
+        </button>
+  
+        <button nz-button nzType="default" (click)="fnOpenEdit()" [hidden]="chinhSuaAvtive" [nzLoading]="prLoading">
+          <i nz-icon nzType="form" nzTheme="outline"></i>
+          Chỉnh sửa
+        </button>
+      </div>
+  
+      <nz-form-item style="width: 200px; margin-left: 12px;">
+        <nz-form-control>
+          <nz-input-group [nzSuffix]="suffixIconSearch" nzSize="default">
+            <input [(ngModel)]="filterParams.Keyword" type="text" nz-input placeholder="tìm kiếm..."
+              (keyup.enter)="getList()" />
+          </nz-input-group>
+          <ng-template #suffixIconSearch>
+            <i nz-icon nzType="search" (click)="getList()"></i>
+          </ng-template>
+
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+  </div>
+
+
+  <nz-table #tblList nzShowSizeChanger [nzData]="listData" [nzFrontPagination]="true" [nzLoading]="prLoading"
+    [nzTotal]="totalItems" [nzPageSize]="filterParams.PageSize" [nzPageIndex]="filterParams.PageNumber"
+    (nzQueryParams)="onQueryParamsChange($event)" [nzScroll]="{ x: '2000px', y: '100vh' }" nzBordered #fixedTable>
+    <thead>
+      <tr class="s2-table-thead-tr">
+        <!-- <th nzLeft nzWidth="30px"></th> -->
+        <th  nzLeft nzWidth="40px" class="s2-text-center" [nzChecked]="checkedAll" [nzIndeterminate]="indeterminate" (nzCheckedChange)="onAllChecked($event)"></th>
+        <th nzLeft nzWidth="120px">Mã đơn tuyển</th>
+        <th nzWidth="90px">Ưu tiên</th>
+        <th nzWidth="120px">Tình trạng</th>
+        <th nzWidth="110px">Số lượng TC</th>
+        <th >Hiệp hội</th>
+        <th>Công ty</th>
+        <th>Chương trình</th>
+        <th>Người phụ trách</th>
+        <th nzWidth="130px">Ngày tạo YC</th>
+        <th nzWidth="130px">Ngày PV</th>
+        <th>Ghi chú</th>
+        <th nzRight nzWidth="50px"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let data of tblList.data" class="s2-table-tbody-tr">
+        <ng-container *ngIf="!editCache[data.id].edit; else editTemplate">
+          <td nzLeft
+            [nzChecked]="setOfCheckedId.has(data.id)"
+            [nzDisabled]="data.disabled"
+            (nzCheckedChange)="onItemChecked(data.id, $event)"
+          ></td>
+          <td nzLeft>
+            <button nz-button nzType="link" [routerLink] = "['/template/chitiet', data.id]">{{data.maDonTuyen}}</button>
+          </td>
+          <td>{{data.uuTien}}</td>
+          <td>{{data.tinhTrang}}</td>
+          <td class="s2-text-center">{{data.soLuongTienCu}}</td>
+          <td>{{data.hiepHoi}}</td>
+          <td>{{data.congTy}}</td>
+          <td>{{data.chuongTrinh}}</td>
+          <td>{{data.nguoiPhuTrach}}</td>
+          <td class="s2-text-center">{{data.ngayTaoYC | date: 'dd/MM/yyyy'}}</td>
+          <td class="s2-text-center">{{data.ngayPhongVan | date: 'dd/MM/yyyy'}}</td>
+          <td>{{data.ghiChu}}</td>
+          <td nzRight class="s2-text-center"><a (click)="startEdit(data.id)"><i nz-icon nzType="edit" style="color: rgb(255, 115, 0);" nzTheme="outline"></i></a></td>
+        </ng-container>
+
+        <ng-template #editTemplate>
+          <td nzLeft
+          [nzChecked]="setOfCheckedId.has(data.id)"
+          [nzDisabled]="data.disabled"
+          (nzCheckedChange)="onItemChecked(data.id, $event)"
+        ></td>
+          <td nzLeft>
+            <button nz-button nzType="link" [routerLink] = "['/template/chitiet', data.id]">{{data.maDonTuyen}}</button>
+          </td>
+          <td>
+            <nz-select nzAllowClear style="width: 100%" nzPlaceHolder="ưu tiên"
+              [(ngModel)]="editCache[data.id].data.uuTien">
+              <nz-option nzValue="Không" nzLabel="Không"></nz-option>
+              <nz-option nzValue="Có" nzLabel="Có"></nz-option>
+            </nz-select>
+          </td>
+          <td>
+            <nz-select nzAllowClear style="width: 100%" nzPlaceHolder="tình trạng"
+              [(ngModel)]="editCache[data.id].data.tinhTrang">
+              <nz-option nzValue="chờ duyệt" nzLabel="Chờ duyệt"></nz-option>
+              <nz-option nzValue="đã duyệt" nzLabel="Đã duyệt"></nz-option>
+            </nz-select>
+          </td>
+          <td><nz-input-number style="width: 100%;" [(ngModel)]="editCache[data.id].data.soLuongTienCu" [nzMin]="1" [nzMax]="100" [nzStep]="1"></nz-input-number></td>
+          <td><input type="text" nz-input [(ngModel)]="editCache[data.id].data.hiepHoi" /></td>
+          <td><input type="text" nz-input [(ngModel)]="editCache[data.id].data.congTy" /></td>
+          <td><input type="text" nz-input [(ngModel)]="editCache[data.id].data.chuongTrinh" /></td>
+          <td><input type="text" nz-input [(ngModel)]="editCache[data.id].data.nguoiPhuTrach" /></td>
+          <td> <nz-date-picker [(ngModel)]="editCache[data.id].data.ngayTaoYC"></nz-date-picker></td>
+          <td><nz-date-picker [(ngModel)]="editCache[data.id].data.ngayPhongVan"></nz-date-picker></td>
+          <td><textarea rows="2" nz-input name="ghiChu" type="ghiChu" id="ghiChu" [(ngModel)]="editCache[data.id].data.ghiChu"></textarea></td>
+          <td nzRight class="s2-text-center">
+            <a nz-popconfirm (nzOnCancel)="cancelEdit(data.id)" nzPopconfirmTitle="Sure to save?" (nzOnConfirm)="saveEdit(data.id)"><i nz-icon nzType="check" nzTheme="outline" style="color: green; margin-right: 8px;"></i></a>
+            <a (click)="cancelEdit(data.id)"><i nz-icon nzType="close" nzTheme="outline" style="color: red;"></i></a>
+          </td>
+        </ng-template>
+      </tr>
+    </tbody>
+  </nz-table>
+
+    <!-- Form edit/ add new -->
+  <nz-drawer [nzVisible]="showForm" nzTitle="Tạo mới đơn tuyển" (nzOnClose)="closeForm()" [nzMaskClosable]="false"
+    [nzBodyStyle]="{ height: 'calc(100% - 55px)', overflow: 'auto', padding: '15px' }"
+    [nzFooter]="footerTpl" nzWidth="800px">
+    <div>
+      <div class="table-infor">
+        <nz-form-item class="field-infor">
+          <label class="label-detail">Hiệp hội:</label>
+          <nz-form-control>
+            <nz-select class="input-detail" nzShowSearch [(ngModel)]="donTuyenSelected.hiepHoi" nzAllowClear nzPlaceHolder="Chọn hiệp hội...">
+              <nz-option nzValue="AJNOMOTO" nzLabel="AJNOMOTO"></nz-option>
+              <nz-option nzValue="ZORO" nzLabel="ZORO"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="field-infor">
+          <label class="label-detail">Số lượng tiến cử:</label>
+          <nz-form-control>
+              <nz-input-number class="input-detail" style="width: 100%;" [(ngModel)]="donTuyenSelected.soLuongTienCu" [nzMin]="1" [nzMax]="100" [nzStep]="1"></nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="field-infor">
+          <label class="label-detail">Công ty:</label>
+          <nz-form-control>
+            <input class="input-detail" nz-input placeholder="Nhập tên công ty..." nzSize="default"
+              [(ngModel)]="donTuyenSelected.congTy" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="field-infor">
+          <label class="label-detail">Chương trình:</label>
+          <nz-form-control>
+            <nz-select class="input-detail" nzShowSearch nzAllowClear nzPlaceHolder="Chọn chương trình...">
+              <nz-option nzValue="TTSV2" nzLabel="TTSV2"></nz-option>
+              <nz-option nzValue="TTSV1" nzLabel="TTSV1"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="field-infor">
+          <label class="label-detail">Người phụ trách:</label>
+          <nz-form-control>
+            <input class="input-detail" nz-input placeholder="Nhập tên người phụ trách..." nzSize="default"
+              [(ngModel)]="donTuyenSelected.nguoiPhuTrach" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="field-infor">
+          <label class="label-detail">Ngày tạo yêu cầu:</label>
+          <nz-form-control>
+            <nz-date-picker nzSize="default" [(ngModel)]="donTuyenSelected.ngayTaoYC" id="ngayTaoYC" nz-input nz-col></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="field-infor">
+          <label class="label-detail">Ngày phỏng vấn:</label>
+          <nz-form-control>
+            <nz-date-picker nzSize="default" [(ngModel)]="donTuyenSelected.ngayPhongVan" id="ngayPhongVan" nz-input nz-col></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="field-infor">
+          <label class="label-detail">Ưu tiên:</label>
+          <nz-form-control>
+            <label nz-checkbox [(ngModel)]="donTuyenSelected.uuTien"></label>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="field-infor w-full">
+          <label class="label-detail" style="align-self: flex-start; margin-top: 4px;">Ghi chú:</label>
+          <nz-form-control>
+            <nz-textarea-count [nzMaxCharacterCount]="4000">
+              <textarea rows="3" nz-input placeholder="Nhập ghi chú..." nzSize="default"
+                [(ngModel)]="donTuyenSelected.ghiChu"></textarea>
+            </nz-textarea-count>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+
+    <ng-template #footerTpl>
+      <div style="float: left">
+        <button nz-button nzType="primary" (click)="saveForm()" style="margin-right: 8px;">
+          Lưu
+        </button>
+        <button type="button" (click)="closeForm()" class="ant-btn" style="margin-right: 8px;">
+          <span>Hủy</span>
+        </button>
+      </div>
+    </ng-template>
+
+  </nz-drawer>
+  <!-- Form edit/ add new -->
+</nz-card>
